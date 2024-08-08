@@ -43,10 +43,29 @@ public class MybatisPlusConfigure {
 
 ## spring security 动态权限
 
-参照DynamicSecurityAutoConfiguration实现对应的web环境所需的权限加载器即可
+参照`DynamicSecurityAutoConfiguration`实现对应的web环境所需的权限加载器即可
 
 webflux：ReactiveSecurityMappingLoader
+
 servlet：SecurityMappingLoader
 
 默认配置security.dynamic.route,会被解析为对应环境中权限加载器
 
+```java
+@Configuration
+public class SecurityConfigure{
+
+    @Bean
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
+    public SecurityMappingLoader jdbcSecurityMappingLoader(){
+        // 自行实现
+    }
+
+    @Bean
+    @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
+    public ReactiveSecurityMappingLoader reactiveSecurityMappingLoader(){
+        // 自行实现
+    }
+    
+}
+```

@@ -71,15 +71,11 @@ public class DynamicSecurityAutoConfiguration {
 
         @Bean
         public SecurityMappingLoader securityMappingLoader(DynamicSecurityProperties properties) throws ClassNotFoundException {
-
-
             List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>> list = properties.getRoute().entrySet().stream().flatMap(e -> {
                 String key = e.getKey();
                 String[] split = key.split(" ");
-                Object f = split.length == 2 ? RequestMatchers.antMatchers(HttpMethod.valueOf(split[0]), split[1]) : RequestMatchers.antMatchers(key);
-                List<RequestMatcher> matchers = (List<RequestMatcher>) f;
+                List<RequestMatcher> matchers = split.length == 2 ? RequestMatchers.antMatchers(HttpMethod.valueOf(split[0]), split[1]) : RequestMatchers.antMatchers(key);
                 return matchers.stream().map(matcher -> new RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>(matcher, AuthorityAuthorizationManager.hasAuthority(e.getValue())));
-
             }).toList();
             return () -> list;
         }
