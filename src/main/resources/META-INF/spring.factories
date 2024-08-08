@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.github.d.autoconfigure.mybatis.MybatisPlusPermissionAutoConfiguration,\
+  com.github.d.autoconfigure.security.DynamicSecurityAutoConfiguration

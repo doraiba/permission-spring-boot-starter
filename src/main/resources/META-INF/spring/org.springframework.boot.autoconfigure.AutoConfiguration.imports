@@ -1,0 +1,2 @@
+com.github.d.autoconfigure.mybatis.MybatisPlusPermissionAutoConfiguration
+com.github.d.autoconfigure.security.DynamicSecurityAutoConfiguration
