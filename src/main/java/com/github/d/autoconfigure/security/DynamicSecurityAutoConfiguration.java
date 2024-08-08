@@ -47,7 +47,7 @@ public class DynamicSecurityAutoConfiguration {
 
 
         @Bean
-        public ReactiveSecurityMappingLoader reactiveSecurityMappingLoader(DynamicSecurityProperties properties) {
+        public ReactiveSecurityMappingLoader internalReactiveSecurityMappingLoader(DynamicSecurityProperties properties) {
             List<ServerWebExchangeMatcherEntry<ReactiveAuthorizationManager<AuthorizationContext>>> list = properties.getRoute().entrySet().stream().map(e -> {
                 String key = e.getKey();
                 String[] split = key.split(" ");
@@ -70,7 +70,7 @@ public class DynamicSecurityAutoConfiguration {
 
 
         @Bean
-        public SecurityMappingLoader securityMappingLoader(DynamicSecurityProperties properties) throws ClassNotFoundException {
+        public SecurityMappingLoader internalSecurityMappingLoader(DynamicSecurityProperties properties) throws ClassNotFoundException {
             List<RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>> list = properties.getRoute().entrySet().stream().flatMap(e -> {
                 String key = e.getKey();
                 String[] split = key.split(" ");
