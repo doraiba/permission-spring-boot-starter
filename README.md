@@ -11,14 +11,14 @@
 
 
 ## mybatis plus 行级数据拦截
-```java
 
+```java
 @Configuration
 @MapperScan("com.github.*.mapper")
 public class MybatisPlusConfigure {
 
     /**
-     * 添加分页插件
+     * 添加插件
      */
     @Bean
     public MybatisPlusInterceptor mybatisPlusInterceptor(ObjectProvider<DataPermissionHandler<Authentication>> dataInterceptor) {
@@ -29,12 +29,24 @@ public class MybatisPlusConfigure {
         return interceptor;
     }
 
-    // 自定义实现即可
+    /**
+     * 自行实现
+     * @param dataScopeExchanges
+     * @return
+     */
     @Bean
-    public DataPermissionExchange dataPermissionExchange() {
-        // 注册拦截
-        Map<String, DataPermissionScope> map = Map.of("com.github.pdfinvoice.mapper.CompanyManagerMapper.selectJoinList-com-github-pdfinvoice-dto-CompanyDTO", DataPermissionScope.of(DataPermissionEnum.OWN.getType(), null));
-        return (mapperId, role) -> map.get(mapperId);
+    public DataPermissionHandler<Authentication> defaultDataInterceptor(@Autowired(required = false) List<DataPermissionExchange> dataScopeExchanges) {
+        DataPermissionHandler<Authentication> interceptor = new DataPermissionHandler<>(new ComposeDataPermissionExchange(dataScopeExchanges),
+                // 凭证
+                () -> SecurityContextHolder.getContext().getAuthentication(),
+                // 角色提供, 检索拼接片段
+                (Authentication e) -> e.getAuthorities().stream().map(GrantedAuthority::getAuthority).filter(t -> t.startsWith("ROLE_")).collect(Collectors.joining(",")));
+        Map<DataPermissionEnum, String> rule = new LinkedHashMap<>();
+        // 规则映射
+        rule.put(DataPermissionEnum.OWN, "create_by = #{#sqlParam(principal.username)}");
+
+        interceptor.setRule(rule);
+        return interceptor;
     }
 
 }
@@ -53,19 +65,21 @@ servlet：SecurityMappingLoader
 
 ```java
 @Configuration
-public class SecurityConfigure{
+public class SecurityConfigure {
 
     @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
-    public SecurityMappingLoader jdbcSecurityMappingLoader(){
-        // 自行实现
+    public SecurityMappingLoader securityMappingLoader() {
+        // 自行实现 jdbc,redis等获取方式
+        return () -> RequestMatchers.antMatchers("/user/**").stream().map(matcher->new RequestMatcherEntry<AuthorizationManager<RequestAuthorizationContext>>(matcher, AuthorityAuthorizationManager.hasRole("user"))).toList();
     }
 
     @Bean
     @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.REACTIVE)
-    public ReactiveSecurityMappingLoader reactiveSecurityMappingLoader(){
-        // 自行实现
+    public ReactiveSecurityMappingLoader reactiveSecurityMappingLoader() {
+        // 自行实现 jdbc,redis等获取方式
+        return () -> List.of(new ServerWebExchangeMatcherEntry<ReactiveAuthorizationManager<AuthorizationContext>>(ServerWebExchangeMatchers.pathMatchers("/user/**"), AuthorityReactiveAuthorizationManager.hasRole("user")));
     }
-    
+
 }
 ```
